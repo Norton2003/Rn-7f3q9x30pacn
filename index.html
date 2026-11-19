@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Privacy: the CSP below blocks all outgoing connections from this page (connect-src none). Only same-site files (manifest, icons, service worker) are allowed. Your text is saved only in this device's local storage. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#0B0D10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Lock In">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Lock In</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0B0D10;color:#F2EFE9;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.5}
+.wrap{max-width:720px;margin:0 auto;padding:40px 22px 80px}
+h1{font-size:44px;letter-spacing:.04em;margin:0}
+.sub{color:#9AA3AD;font-size:14px;margin:4px 0 28px}
+.go{display:block;width:100%;padding:26px;font-size:28px;font-weight:800;letter-spacing:.06em;background:#D7261E;color:#fff;border:0;border-radius:10px;cursor:pointer}
+.go:hover{background:#F0332A}
+h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#D7261E;margin:34px 0 4px}
+.hint{color:#9AA3AD;font-size:13px;margin:0 0 8px}
+label{display:block;font-weight:700;margin:16px 0 4px;font-size:15px}
+textarea,input[type=text]{width:100%;background:#151A20;color:#F2EFE9;border:1px solid #2A323B;border-radius:8px;padding:10px 12px;font:inherit;font-size:15px}
+textarea{min-height:78px;resize:vertical}
+.row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn{padding:10px 16px;border-radius:8px;border:1px solid #3A444F;background:#151A20;color:#F2EFE9;font:inherit;font-size:14px;cursor:pointer}
+.btn.pri{background:#F2EFE9;color:#0B0D10;border-color:#F2EFE9;font-weight:700}
+.stat{color:#9AA3AD;font-size:13px;margin-top:10px}
+#ov{position:fixed;inset:0;background:#0B0D10;z-index:9;overflow:auto;display:none}
+#ov .in{max-width:760px;margin:0 auto;padding:7vh 24px 60px}
+.stop{font-size:clamp(54px,12vw,110px);font-weight:900;line-height:.95;color:#D7261E;margin:0}
+.now{font-size:20px;color:#C9CFD6;margin:10px 0 30px}
+.k{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#D7261E;margin:26px 0 4px;font-weight:800}
+.t{font-size:clamp(19px,3.2vw,26px);font-weight:600;line-height:1.35;margin:0}
+.big{font-size:clamp(24px,4.4vw,38px);font-weight:800;line-height:1.2;margin:34px 0 0;border-left:5px solid #D7261E;padding-left:16px}
+.commit{margin-top:38px;padding-top:24px;border-top:1px solid #2A323B}
+.timer{font-size:clamp(72px,18vw,150px);font-weight:900;font-variant-numeric:tabular-nums;margin:0;line-height:1}
+.fade{opacity:0;transform:translateY(10px);animation:in .6s forwards}
+@keyframes in{to{opacity:1;transform:none}}
+.exit{position:fixed;right:14px;bottom:10px;background:none;border:0;color:#5E6873;font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LOCK IN</h1>
+  <p class="sub">Private by design: this page cannot connect to the internet, and your text never leaves this browser.</p>
+  <button class="go" id="go">I'M SLIPPING. LOCK ME IN.</button>
+  <div class="stat" id="stat"></div>
+
+  <h2>Your reasons</h2>
+  <p class="hint">These are the words the screen says to you. Make them true and make them hurt a little. Edit anything.</p>
+
+  <label for="why">Why I'm going for engineering</label>
+  <textarea id="why"></textarea>
+  <label for="cost">What this education costs me (money, years, sacrifice)</label>
+  <textarea id="cost"></textarea>
+  <label for="fail">What happens if I coast or fail</label>
+  <textarea id="fail"></textarea>
+  <label for="family">Who I'm doing this for</label>
+  <textarea id="family"></textarea>
+  <label for="extra">Extra hard-hitting lines, one per line (one is picked at random each time)</label>
+  <textarea id="extra" style="min-height:110px"></textarea>
+
+  <div class="row">
+    <button class="btn pri" id="save">Save</button>
+    <button class="btn" id="reset">Restore starter text</button>
+    <button class="btn" id="wipe">Erase everything</button>
+  </div>
+  <div class="stat" id="msg"></div>
+</div>
+
+<div id="ov"><div class="in" id="oin"></div></div>
+
+<script>
+(function(){
+var KEY='lockin.v1', LOG='lockin.log.v1';
+var DEF={
+ why:"Write the real reason you chose engineering here. Make it specific and true.",
+ cost:"Write what this education actually costs you: money, years, sacrifice.",
+ fail:"Write what really happens if you coast or fail. Be honest.",
+ family:"Write who you're doing this for, by name.",
+ extra:"Every hour on a feed is an hour of this education you paid for and threw away.\nFuture me is watching what I do in the next 25 minutes.\nNobody ever got where they wanted by feeling like it."
+};
+function $(i){return document.getElementById(i)}
+function load(){try{var s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}}
+function store(o){try{localStorage.setItem(KEY,JSON.stringify(o));return true}catch(e){return false}}
+function fields(){return ['why','cost','fail','family','extra']}
+function fill(o){fields().forEach(function(f){$(f).value=o[f]||''})}
+function read(){var o={};fields().forEach(function(f){o[f]=$(f).value.trim()});return o}
+function cur(){var o=load()||{};var r={};fields().forEach(function(f){r[f]=(o[f]!==undefined)?o[f]:DEF[f]});return r}
+function today(){return new Date().toDateString()}
+function logCount(){try{var l=JSON.parse(localStorage.getItem(LOG)||'{}');return l[today()]||0}catch(e){return 0}}
+function bump(){try{var l={};l[today()]=logCount()+1;localStorage.setItem(LOG,JSON.stringify(l))}catch(e){}}
+function stat(){var n=logCount();$('stat').textContent=n?('Locked in '+n+' time'+(n>1?'s':'')+' today.'):''}
+function say(t){$('msg').textContent=t;setTimeout(function(){$('msg').textContent=''},2500)}
+
+fill(cur());stat();
+$('save').onclick=function(){say(store(read())?'Saved on this device.':'Could not save (browser storage blocked).')};
+$('reset').onclick=function(){fill(DEF);store(read());say('Starter text restored.')};
+$('wipe').onclick=function(){if(confirm('Erase all saved text and history from this browser?')){try{localStorage.removeItem(KEY);localStorage.removeItem(LOG)}catch(e){}fill(DEF);stat();say('Erased.')}};
+
+function el(tag,cls,txt,delay){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;if(delay!==undefined){e.className+=' fade';e.style.animationDelay=delay+'s'}return e}
+var tick=null;
+function close(){clearInterval(tick);$('ov').style.display='none';document.body.style.overflow=''}
+
+function lock(){
+ bump();stat();
+ var d=cur(), root=$('oin'), n=0;
+ root.innerHTML='';document.body.style.overflow='hidden';$('ov').style.display='block';$('ov').scrollTop=0;
+ var now=new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+ root.appendChild(el('p','stop','STOP.',0));
+ root.appendChild(el('p','now','It\'s '+now+'. You\'re scrolling instead of studying. Read this.',.2));
+ var blocks=[['Why you\'re here',d.why],['What this costs',d.cost],['If you coast',d.fail],['Who you\'re doing this for',d.family]];
+ blocks.forEach(function(b,i){ if(!b[1])return; var w=document.createElement('div');w.appendChild(el('div','k',b[0],.5+i*.5));w.appendChild(el('p','t',b[1],.7+i*.5));root.appendChild(w)});
+ var ex=d.extra.split('\n').map(function(s){return s.trim()}).filter(Boolean);
+ if(ex.length)root.appendChild(el('p','big',ex[Math.floor(Math.random()*ex.length)],2.8));
+
+ var c=el('div','commit');c.className+=' fade';c.style.animationDelay='3.2s';
+ c.appendChild(el('div','k','Now commit'));
+ c.appendChild(el('p','t','What is the ONE thing you will do for the next 25 minutes?'));
+ var inp=document.createElement('input');inp.type='text';inp.placeholder='e.g. Thermo practice problems, 1 through 6';inp.style.marginTop='12px';c.appendChild(inp);
+ var b=el('button','btn pri','Read it first...');b.style.marginTop='14px';b.disabled=true;c.appendChild(b);
+ root.appendChild(c);
+ var left=12;
+ function gate(){var ok=left<=0&&inp.value.trim().length>=3;b.disabled=!ok;b.textContent=left>0?('Read it first... '+left):(ok?'START 25 MINUTES':'Type your task')}
+ clearInterval(tick);tick=setInterval(function(){if(left>0)left--;gate()},1000);gate();inp.oninput=gate;
+ b.onclick=function(){if(!b.disabled)timer(inp.value.trim())};
+ var x=el('button','exit','not now');x.onclick=close;root.appendChild(x);
+}
+
+function timer(task){
+ var root=$('oin'),end=Date.now()+25*60*1000;root.innerHTML='';
+ root.appendChild(el('div','k','Locked in on'));
+ root.appendChild(el('p','t',task));
+ var big=el('p','timer','25:00');big.style.marginTop='24px';root.appendChild(big);
+ var note=el('p','now','Phone face down. This tab stays open. Work.');root.appendChild(note);
+ var done=el('button','btn','End early');done.onclick=close;root.appendChild(done);
+ clearInterval(tick);
+ tick=setInterval(function(){
+  var s=Math.max(0,Math.round((end-Date.now())/1000));
+  big.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+(s%60)).slice(-2);
+  if(s===0){clearInterval(tick);note.textContent='Time. You did it. Take 5 minutes, then go again.';done.textContent='Close'}
+ },500);
+}
+
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+$('go').onclick=lock;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('ov').style.display==='block')close()});
+})();
+</script>
+</body>
+</html>
