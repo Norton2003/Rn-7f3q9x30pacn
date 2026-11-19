@@ -123,7 +123,7 @@ function lock(){
  var c=el('div','commit');c.className+=' fade';c.style.animationDelay='3.2s';
  c.appendChild(el('div','k','Now commit'));
  c.appendChild(el('p','t','What is the ONE thing you will do for the next 25 minutes?'));
- var inp=document.createElement('input');inp.type='text';inp.placeholder='e.g. Thermo practice problems, 1 through 6';inp.style.marginTop='12px';c.appendChild(inp);
+ var inp=document.createElement('input');inp.type='text';inp.style.marginTop='12px';c.appendChild(inp);
  var b=el('button','btn pri','Read it first...');b.style.marginTop='14px';b.disabled=true;c.appendChild(b);
  root.appendChild(c);
  var left=12;
